@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Task Manager</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>📝 Task Manager</h1>
+
+    <form id="taskForm">
+      <input type="text" id="taskInput" placeholder="Enter new task..." required>
+      <button type="submit">Add Task</button>
+    </form>
+
+    <div class="filters">
+      <button onclick="fetchTasks()">All</button>
+      <button onclick="fetchTasks('completed')">Completed</button>
+      <button onclick="fetchTasks('pending')">Pending</button>
+    </div>
+
+    <ul id="taskList"></ul>
+  </div>
+
+  <script>
+    const API_BASE = '/api/tasks';
+
+    async function fetchTasks(status = '') {
+      const url = status ? `${API_BASE}?status=${status}` : API_BASE;
+      const res = await fetch(url);
+      const tasks = await res.json();
+      renderTasks(tasks);
+    }
+
+    function renderTasks(tasks) {
+      const list = document.getElementById('taskList');
+      list.innerHTML = '';
+      tasks.forEach(task => {
+        const li = document.createElement('li');
+        li.className = task.completed ? 'completed' : '';
+        li.innerHTML = `
+          <span>${task.title}</span>
+          <div>
+            ${!task.completed ? `<button onclick="markCompleted('${task._id}')">✅</button>` : ''}
+            <button onclick="deleteTask('${task._id}')">🗑️</button>
+          </div>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    async function markCompleted(id) {
+      await fetch(`${API_BASE}/${id}`, { method: 'PUT' });
+      fetchTasks();
+    }
+
+    async function deleteTask(id) {
+      await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
+      fetchTasks();
+    }
+
+    document.getElementById('taskForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('taskInput');
+      const title = input.value.trim();
+      if (!title) return;
+      await fetch(API_BASE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title })
+      });
+      input.value = '';
+      fetchTasks();
+    });
+
+    // Initial load
+    fetchTasks();
+  </script>
+</body>
+</html>
