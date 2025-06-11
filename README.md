@@ -18,4 +18,4 @@ A simple RESTful Task Manager API built with Node.js, Express, MongoDB, and Mong
 1. Clone the repo:
    ```bash
    git clone <repo-url>
-   cd task-manager
+   cd backend
